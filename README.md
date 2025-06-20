@@ -1,99 +1,137 @@
-# Pony
-### To take out .sra files from the subdirectories placed in one parent directory in one go ###
 
-#!/bin/bash
+# 🐴 Exmoor Pony Ancient DNA Project
 
-# Define the parent directory
-PARENT_DIR="define path of your parent directory"
-LOG_FILE="$PARENT_DIR/move_sra_log.txt"
+> **Ancient genome analysis pipeline** for Exmoor ponies using modern bioinformatics tools to explore evolutionary insights, population history, and genetic diversity from ancient DNA (aDNA) samples.
 
-# Start logging
-echo "$(date) - Starting to move .sra files" > "$LOG_FILE"
+---
 
-# Find and move all .sra files from subdirectories to the parent directory
-find "$PARENT_DIR" -mindepth 2 -type f -name "*.sra" | while read -r file; do
-    # Extract filename
-    filename=$(basename "$file")
-    
-    # Move file to parent directory
-    if mv "$file" "$PARENT_DIR/"; then
-        echo "$(date) - Moved: $file -> $PARENT_DIR/$filename" >> "$LOG_FILE"
-    else
-        echo "$(date) - ERROR moving: $file" >> "$LOG_FILE"
-    fi
-done
+##  Project Structure
 
-echo "$(date) - Completed moving .sra files" >> "$LOG_FILE"
+```
+Exmoor_Pony_Project/
+│
+├── input_files/           # Raw input data (FASTQ/SRA/BAM)
+├── working_files/         # Intermediate and converted files
+├── output_files/          # Final analysis outputs
+├── scripts/               # Custom and automated scripts
+├── configs/               # YAML and Makefiles for PALEOMIX
+├── qualimap_results/      # BAMQC reports from Qualimap
+├── figures/               # Plots, coverage graphs, etc.
+└── README.md              # Project overview and usage guide
+```
 
-### To delete all empty subdirectories in one go ###
-#!/bin/bash
+---
 
-# Define the parent directory where empty subdirectories should be deleted
-PARENT_DIR="define path of your parent directory"
+## 🔬 Project Goals
 
-# Find and delete empty subdirectories
-find "$PARENT_DIR" -type d -empty -delete
+* Process and analyze ancient DNA (aDNA) from Exmoor pony samples.
+* Use standardized, reproducible bioinformatics pipelines.
+* Perform quality control, read alignment, damage profiling, and coverage analysis.
+* Investigate genetic integrity, damage patterns, and evolutionary insights.
 
-# Print message
-echo "All empty subdirectories in $PARENT_DIR have been deleted."
+---
 
-### To make dummy files to ptactice running script ###
+## 🧰 Tools Used
 
-mkdir dummyrun
-cd dummyrun
-mkdir subdir1
-touch /home/akancha/dummyrun/subdir1/fake_data.sra(choose file name ac to preferene)
+| Tool               | Purpose                                |
+| ------------------ | -------------------------------------- |
+| **PALEOMIX**       | End-to-end ancient DNA pipeline        |
+| **AdapterRemoval** | Adapter trimming and quality filtering |
+| **BWA (aln)**      | Short-read aligner optimized for aDNA  |
+| **MapDamage2**     | DNA damage profiling and visualization |
+| **Qualimap**       | BAM quality control and metrics        |
+| **samtools**       | BAM/SAM manipulation and statistics    |
+| **Python, R**      | Custom scripts, plotting, statistics   |
 
-### To convert .sra files into fastq files in batches of 25 ###
-#!/bin/bash
+---
 
-# Path to SRA Toolkit binaries
-SRA_TOOLS="/shared5/Alex/ancient_genomes/sratoolkit.3.2.0-centos_linux64/bin"
+## ⚙️ Pipeline Overview
 
-# Path where .sra files are stored
-SRA_DIR="/shared5/Alex/ancient_genomes"
+1. **Raw Data Preprocessing**
 
-# Output directory for FASTQ files
-OUTPUT_DIR="$SRA_DIR/fastq_files"
+   * Convert `.sra` to `.fastq` if needed
+   * Trim adapters with AdapterRemoval
+   * Filter for read quality
 
-# Create output directory if it doesn’t exist
-mkdir -p "$OUTPUT_DIR"
+2. **Mapping to Reference Genome**
 
-# Ensure SRA Toolkit binaries are in PATH
-export PATH="$SRA_TOOLS:$PATH"
+   * Align to *EquCab3.0* using BWA (aln mode)
+   * Remove duplicates
+   * Index and sort BAM files
 
-# Find all .sra files in the directory and store them in an array
-mapfile -t SRA_FILES < <(find "$SRA_DIR" -maxdepth 1 -type f -name "*.sra" | sort)
+3. **Quality Control**
 
-# Total number of files
-TOTAL_FILES=${#SRA_FILES[@]}
+   * Run `qualimap bamqc` for BAM QC metrics
+   * Inspect GC bias, insert sizes, coverage
 
-# Batch size (number of files per batch)
-BATCH_SIZE=25
+4. **Damage Analysis**
 
-# Process files in batches of 25
-for ((i = 0; i < TOTAL_FILES; i += BATCH_SIZE)); do
-    echo "Processing batch: $((i + 1)) to $((i + BATCH_SIZE))"
+   * Run `mapDamage2` to assess deamination and fragmentation
+   * Output plots and summary statistics
 
-    # Extract the current batch
-    BATCH_FILES=("${SRA_FILES[@]:i:BATCH_SIZE}")
+5. **Coverage Analysis & Filtering**
 
-    # Loop through each .sra file in the batch
-    for sra_file in "${BATCH_FILES[@]}"; do
-        base_name=$(basename "$sra_file" .sra)
+   * Use `samtools depth`, `bedtools`, and other tools for genome-wide coverage summaries
 
-        echo "Converting $sra_file to FASTQ..."
-        
-        # Convert SRA to FASTQ (split paired reads, compress output)
-        "$SRA_TOOLS/fasterq-dump" --split-3 --outdir "$OUTPUT_DIR" "$sra_file" && gzip "$OUTPUT_DIR/$base_name"*.fastq
+---
 
-        echo "Converted: $sra_file -> $OUTPUT_DIR/$base_name.fastq.gz"
-    done
+## 📊 Example: BAM QC with Qualimap
 
-    echo "Batch $((i / BATCH_SIZE + 1)) completed."
-done
+```bash
+bam="/shared5/Alex/ancient_genomes/bam_pipeline/ERR6465277.GCF_002863925.1_EquCab3.0_genomic.bam"
+full=$(basename "$bam" .bam)
+prefix=${full%%.*}
 
-echo "All .sra files have been converted and saved in: $OUTPUT_DIR"
+qualimap bamqc \
+  -bam "$bam" \
+  -outdir "/shared5/Alex/ancient_genomes/qualimap_results/bamqc_${prefix}" \
+  -outformat PDF \
+  -nt 4
+```
 
+---
 
+## 🧬 Example: DNA Damage Profiling with MapDamage2
+
+```bash
+# Inside mapDamage source directory and conda env:
+python setup.py install
+
+# Example command
+mapDamage \
+  -i ERR6465277.bam \
+  -r GCF_002863925.1_EquCab3.0_genomic.fna \
+  -d output_mapdamage_ERR6465277 \
+  --no-stats \
+  --merge-reference-sequences
+```
+
+👉 See [installation script here](https://github.com/PoODL-CES/Ancient_data_Processing/blob/main/MapDamage2%20installation.sh)
+
+---
+
+## 📥 Input Requirements
+
+* **Sequencing data**: `.fastq.gz` or `.sra` (single-end or paired-end)
+* **Reference genome**: *EquCab3.0* in FASTA format (indexed)
+* **Sample sheet**: For use with PALEOMIX (YAML format)
+
+---
+
+## 📤 Output Summary
+
+* BAM files (sorted, indexed, deduplicated)
+* QC reports (`qualimapReport.pdf`, `mapDamage plots`)
+* Alignment stats and logs
+* Coverage and depth data
+* Visualizations (damage patterns, fragment lengths)
+
+---
+
+## 🧪 Sample Commands & Scripts
+
+* See [`scripts/`](./scripts/) for batch processing, conversions, and automated analysis
+* See [`configs/`](./configs/) for PALEOMIX Makefile and sample sheet configuration
+
+---
 

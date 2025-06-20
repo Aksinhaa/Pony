@@ -1,0 +1,11 @@
+## bam qc code :- 
+
+
+bam="/shared5/Alex/ancient_genomes/bam_pipeline/ERR6465277.GCF_002863925.1_EquCab3.0_genomic.bam"
+full=$(basename "$bam" .bam)
+prefix=${full%%.*}
+ qualimap bamqc \
+-bam "$bam" \
+-outdir "/shared5/Alex/ancient_genomes/qualimap_results/bamqc_${prefix}" \
+-outformat PDF \
+-nt 4

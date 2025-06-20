@@ -126,12 +126,6 @@ mapDamage \
 * Coverage and depth data
 * Visualizations (damage patterns, fragment lengths)
 
----
-
-## 🧪 Sample Commands & Scripts
-
-* See [`scripts/`](./scripts/) for batch processing, conversions, and automated analysis
-* See [`configs/`](./configs/) for PALEOMIX Makefile and sample sheet configuration
 
 ---
 

@@ -1,0 +1,71 @@
+
+##  Installing **MapDamage 2** (v 2.2.2)
+
+### 1 · Fetch the source
+
+wget -q https://github.com/ginolhac/mapDamage/archive/refs/tags/2.2.2.zip
+unzip 2.2.2.zip
+
+## This will extract the source files to a folder named:
+mapDamage-2.2.2
+
+## All installation steps below must be executed inside the mapDamage-2.2.2 directory, as it contains the setup.py used to install MapDamage.
+
+cd mapDamage-2.2.2          # directory created by unzip
+
+
+### 2 · Create & activate an isolated Conda environment
+
+conda create -n mapdamage2 python=3.8 
+conda activate mapdamage2
+
+
+### 3 · Install runtime dependencies
+
+conda install conda-forge::coloredlogs
+conda install conda-forge::pysam 
+conda install conda-forge::r-base
+conda install conda-forge::r-ggplot2
+conda install conda-forge::r-scales
+conda install conda-forge::r-optprase
+conda install conda-forge::r-reshape2
+conda install conda-forge::r-inline
+conda install conda-forge::gcc
+conda install conda-forge::r-gam
+conda install conda-forge::r-rcppgsl
+
+### 4 · Build & install MapDamage 2 from source
+
+python setup.py install
+
+
+### 5 · Confirm the installation
+
+
+mapDamage --version   # should report 2.2.2
+mapDamage --help      # full CLI usage
+
+
+---
+
+Troubleshooting tips
+
+| Symptom                                      | Likely cause & fix                                                      |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| `gcc: command not found`                     | Ensure `gcc` is installed (`conda install gcc` or system package)       |
+| R package compilation warnings/errors        | Verify that R ≥ 4.1 is in the environment                               |
+| `mapDamage: command not found` after install | Check that the environment is active and `$PATH` includes Conda’s `bin` |
+
+
+
+
+# command to run mapdamage2:
+
+mapDamage \
+-i /shared5/Alex/ancient_genomes/bam_pipeline/ERR6465215.GCF_002863925.1_EquCab3.0_genomic.bam \
+-r /shared5/Alex/ancient_genomes/EquCab3_ref/GCF_002863925.1_EquCab3.0_genomic.fna \
+-d /shared5/Alex/ancient_genomes/mapdamage_2/mapdamage2_results/ERR6465215_mapdam2_results \
+--merge-reference-sequences \
+--verbose
+
+# 🚨Reanme the path and file name.

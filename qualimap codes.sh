@@ -12,6 +12,7 @@ conda activate qualimap
 conda install bioconda::qualimap
 
 ###  Script to run qualimap for individual BAM file
+
 ```
 # Path to the input BAM file
 bam="/shared5/Alex/ancient_genomes/bam_pipeline/ERR6465277.GCF_002863925.1_EquCab3.0_genomic.bam"
@@ -76,6 +77,8 @@ Inside output directory, you'll find:
 * `qualimapReport.pdf` — Main visual report with graphs and stats
 * `genome_results.txt` — Plain text summary of alignment metrics
 * `raw_data/` — Intermediate files and detailed metrics
+
+
 
 OR
 

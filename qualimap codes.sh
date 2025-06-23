@@ -11,7 +11,7 @@ conda activate qualimap
 
 conda install bioconda::qualimap
 
-###  Script to run qualimap
+###  Script to run qualimap for individual BAM file
 ```
 # Path to the input BAM file
 bam="/shared5/Alex/ancient_genomes/bam_pipeline/ERR6465277.GCF_002863925.1_EquCab3.0_genomic.bam"
@@ -77,3 +77,44 @@ Inside output directory, you'll find:
 * `genome_results.txt` — Plain text summary of alignment metrics
 * `raw_data/` — Intermediate files and detailed metrics
 
+OR
+
+## Script to automate the qualimap step for multiple BAM files: 
+
+#!/bin/bash
+
+# Set input and output directories
+BAM_DIR="/shared5/Alex/ancient_genomes/bam_pipeline"
+OUT_DIR="/shared5/Alex/ancient_genomes/qualimap_results"
+
+# Create output directory if it doesn't exist
+mkdir -p "$OUT_DIR"
+
+# Loop through each .bam file in the input directory
+for bam in "$BAM_DIR"/*.bam; do
+    # Extract filename without the .bam extension
+    full=$(basename "$bam" .bam)
+
+    # Extract sample prefix before the first dot
+    prefix=${full%%.*}
+
+    # Define output path for this sample
+    sample_out="$OUT_DIR/bamqc_${prefix}"
+
+    # Check if output folder already exists
+    if [ -d "$sample_out" ]; then
+        echo " Skipping $prefix — already processed."
+        continue
+    fi
+
+    echo " Processing $prefix..."
+
+    # Run Qualimap bamqc
+    qualimap bamqc \
+      -bam "$bam" \
+      -outdir "$sample_out" \
+      -outformat PDF \
+      -nt 4
+
+    echo "✅ Finished processing $prefix"
+done

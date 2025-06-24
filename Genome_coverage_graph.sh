@@ -143,3 +143,49 @@ walk2(batches, seq_along(batches), function(batch_files, batch_num) {
   
   message("✅ Saved: ", output_file)
 })
+
+
+
+
+OR 
+
+
+
+## To avoid already existed graph, and generate new graphs for the newly generated bamqc files:
+
+for (i in seq(1, nrow(data), by = batch_size)) {
+  batch_num <- ceiling(i / batch_size)
+  batch_data <- data[i:min(i + batch_size - 1, nrow(data)), ]
+  
+  batch_output_file <- file.path(output_dir, paste0("coverage_plot_batch", batch_num, ".png"))
+  
+  # Skip if file already exists
+  if (file.exists(batch_output_file)) {
+    message("✅ Skipping Batch ", batch_num, ": already plotted.")
+    next
+  }
+  
+  # Create plot
+  p <- ggplot(batch_data, aes(x = reorder(sample, coverage), y = coverage, fill = coverage)) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    geom_text(aes(label = round(coverage, 2)), hjust = -0.2, size = 3) +
+    scale_fill_gradient(low = "lightblue", high = "darkblue") +
+    theme_minimal(base_size = 14) +
+    labs(
+      title = paste("Genome Coverage per Sample - Batch", batch_num),
+      x = "Sample",
+      y = "Mean Coverage (X)",
+      fill = "Coverage"
+    ) +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      axis.text.y = element_text(size = 10),
+      axis.text.x = element_text(size = 10),
+      legend.position = "right"
+    ) +
+    expand_limits(y = max(batch_data$coverage) * 1.1)
+  
+  ggsave(batch_output_file, p, width = 12, height = 8)
+  message("✅ Plot saved for Batch ", batch_num, ": ", batch_output_file)
+}

@@ -8,7 +8,35 @@ conda activate sra_env
 
 conda install -c bioconda sra-tools
 
-### Step 3: Convert .sra files into fastq files in batches  ###
+### Step 3: Convert .sra files into fastq files  ###
+
+Step 1: Save your filenames in a file using cat or nano. Name the file in any manner, here the file name is "sra_to_convert.txt". You can list all your file names like below:
+
+
+cat > sra_to_convert.txt <<EOF
+SRRXXX.sra
+SRRXXX.sra
+SRRXXX.sra
+SRRXXX.sra
+SRRXXX.sra
+EOF
+
+ Step 2: Run fasterq-dump for each file
+Assuming all .sra files are in "sra_to_convert.txt" , run this loop:
+
+while read sra; do
+    fasterq-dump --split-files -p -e 8 \
+    -O /"Give output directory path"/ \
+    /"Give input directory path"/"$sra"
+done < sra_to_convert.txt
+
+
+
+OR 
+
+
+## Convert your .sra files in batches of 25: {In case if you have huge number of files}
+
 #!/bin/bash
 
 # Path to SRA Toolkit binaries
